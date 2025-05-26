@@ -81,6 +81,22 @@ import { PDFDocument } from 'pdf-lib';
         }
       }
 
+      if (param?.color) {
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+        if (param.color?.red) {
+          red = param.color.red;
+        }
+        if (param.color?.green) {
+          green = param.color.green;
+        }
+        if (param.color?.blue) {
+          blue = param.color.blue;
+        }
+        drawTextOptions.color = rgb(red, green, blue);
+      }
+
       /*
       //maxWidthが効かないため、使わない
       if (param?.maxWidth) {

@@ -33,6 +33,7 @@ var sdpParam = sdpParam || {};
         x: 390,
         y: 730,
         size: 10,
+        color: { red: 255, green: 0, blue: 0 },
       },
       {
         fieldCode: '請求金額',
@@ -69,6 +70,7 @@ var sdpParam = sdpParam || {};
             fieldCode: '内容',
             x: 180,
             size: 12,
+            color: { red: 0, green: 255, blue: 0 },
           },
         ],
       },
@@ -96,6 +98,7 @@ var sdpParam = sdpParam || {};
           fieldCode: '単位',
           x: 340,
           size: 12,
+          color: { red: 0, green: 0, blue: 255 },
         },
         {
           fieldCode: '単価',
