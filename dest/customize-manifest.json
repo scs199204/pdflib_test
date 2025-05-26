@@ -1,0 +1,12 @@
+{
+  "app": "3365",
+  "scope": "ALL",
+  "desktop": {
+    "js": ["sdpParam_pdfLib.js", "dist/index.js"],
+    "css": ["51-modern-default.css"]
+  },
+  "mobile": {
+    "js": [],
+    "css": []
+  }
+}
