@@ -72,7 +72,8 @@ import { PDFDocument } from 'pdf-lib';
       //maxWidthが効かないため、sizeに応じてmaxWidthに収まる文字数分を抽出する。
       if (param?.maxWidth) {
         //文字の幅と、maxWidthを比較して、maxWidthに収まらない場合収まる文字数分のみ描画
-        if (customFont.widthOfTextAtSize(joinText, param.size) > param.maxWidth) {
+        const charLength = customFont.widthOfTextAtSize(joinText, param.size);
+        if (charLength > param.maxWidth) {
           const estimatedCharWidth = currentWidth / joinText.length; // 1文字あたりの概算幅
           const maxChars = Math.floor(param.maxWidth / estimatedCharWidth); // 収まる文字数の概算
           const truncatedText = joinText.substring(0, maxChars);
