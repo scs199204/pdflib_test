@@ -68,9 +68,7 @@ import { PDFDocument } from 'pdf-lib';
       if (param?.postFix) {
         joinText += param.postFix;
       }
-
       const drawTextOptions = { x: x, y: y, font: customFont, size: param.size };
-
       //maxWidthが効かないため、sizeに応じてmaxWidthに収まる文字数分を抽出する。
       if (param?.maxWidth) {
         //文字の幅と、maxWidthを比較して、maxWidthに収まらない場合収まる文字数分のみ描画
