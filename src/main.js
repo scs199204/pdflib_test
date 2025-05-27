@@ -81,6 +81,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
         }
       }
 
+      //文字色の設定
       if (param?.color) {
         let red = 0;
         let green = 0;
@@ -115,6 +116,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
    * @param {number} maxHeight 最大の文字の高さ
    * @returns {number} 次のy軸座標位置
    */
+  //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
   function calcOffset(drawItem, maxHeight) {
     if (drawItem?.y_OffsetFontSize) {
       result = maxHeight + drawItem.y_Offset; //y座標更新(文字の高さ+オフセット)
@@ -122,6 +124,26 @@ import { PDFDocument, rgb } from 'pdf-lib';
       result = drawItem.y_Offset; //y座標更新(yをマイナスして座標を下へ移動)
     }
     return result;
+  }
+
+  //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  /**
+   * @param {*} subtotal
+   * @param {*} row
+   * @param {*} record
+   */
+  //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+  function subtotalAdd(subtotal, row, record) {
+    const targetValue = Number(record[row.fieldCode].value);
+    if (!subtotal?.[row.fieldCode]) {
+      subtotal[row.fieldCode] = { value: 0 };
+    }
+
+    if (Number.isFinite(targetValue)) {
+      subtotal[row.fieldCode].value += targetValue;
+    } else {
+      subtotal[row.fieldCode].value += 1;
+    }
   }
 
   //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
@@ -152,10 +174,16 @@ import { PDFDocument, rgb } from 'pdf-lib';
       const fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
       const customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む
 
+      //全体のページ数
+      let totalPage = 1;
+      if (params?.pageBreakTable) {
+        totalPage = Math.ceil(record[params.pageBreakTable.fieldCode].value.length / params.pageBreakTable.maxRow);
+      }
+
       //改ページ考慮
       let copiedPage; //２ページ目以降作成の為、退避用ページ
       let nextPageRowCount = 0; //改ページ対象テーブルの読込行
-      for (let pageCount = 0; true; pageCount++) {
+      for (let pageCount = 0; pageCount < totalPage; pageCount++) {
         let page;
         if (pageCount === 0) {
           page = pdfDoc.getPage(0); //先頭ページの場合は、そのまま取得
@@ -167,27 +195,43 @@ import { PDFDocument, rgb } from 'pdf-lib';
 
         const drawTextPdf = drawTextPdfFunc(page, customFont); //テキスト描画用の関数作成(ページ毎に作成する必要がある)
 
+        //ページ数の描画
+        if (params?.pageCount) {
+          let pageValue = '';
+          const currentPage = pageCount + 1;
+          if (params.pageCount.type === 'Pn') {
+            pageValue = 'P' + currentPage;
+          } else {
+            pageValue = currentPage + ' / ' + totalPage;
+          }
+          page.drawText(pageValue, { x: params.pageCount.x, y: params.pageCount.y, font: customFont, size: params.pageCount.size });
+        }
+
         //テキスト
         if (params?.text) {
           for (const drawItem of params.text) {
-            drawTextPdf(drawItem, record, drawItem.y); //pdfにテキスト描画
+            if (!drawItem?.targetPage || drawItem.targetPage === 'all' || (pageCount === 0 && drawItem.targetPage === 'first') || (pageCount + 1 === totalPage && drawItem.targetPage === 'last')) {
+              drawTextPdf(drawItem, record, drawItem.y); //pdfにテキスト描画
+            }
           }
         }
 
         //画像
         if (params?.image) {
           for (const drawItem of params.image) {
-            try {
-              const signatureImageFileKey = record[drawItem.fieldCode].value[0].fileKey; //画像のfileKey
-              if (signatureImageFileKey) {
-                const signatureImageBytes = await getFileData(signatureImageFileKey); // 画像を取得
-                const signatureImage = await pdfDoc.embedPng(signatureImageBytes); //PNGファイルの埋め込み
-                const height = drawItem?.height ? drawItem.height : drawItem.width;
-                page.drawImage(signatureImage, { x: drawItem.x, y: drawItem.y, width: signatureImage.width * drawItem.width, height: signatureImage.height * height });
+            if (!drawItem?.targetPage || drawItem.targetPage === 'all' || (pageCount === 0 && drawItem.targetPage === 'first') || (pageCount + 1 === totalPage && drawItem.targetPage === 'last')) {
+              try {
+                const signatureImageFileKey = record[drawItem.fieldCode].value[0].fileKey; //画像のfileKey
+                if (signatureImageFileKey) {
+                  const signatureImageBytes = await getFileData(signatureImageFileKey); // 画像を取得
+                  const signatureImage = await pdfDoc.embedPng(signatureImageBytes); //PNGファイルの埋め込み
+                  const height = drawItem?.height ? drawItem.height : drawItem.width;
+                  page.drawImage(signatureImage, { x: drawItem.x, y: drawItem.y, width: signatureImage.width * drawItem.width, height: signatureImage.height * height });
+                }
+              } catch (error) {
+                console.error('画像の埋め込みエラー:', error);
+                alert('画像の処理中にエラーが発生しました。');
               }
-            } catch (error) {
-              console.error('画像の埋め込みエラー:', error);
-              alert('画像の処理中にエラーが発生しました。');
             }
           }
         }
@@ -195,16 +239,18 @@ import { PDFDocument, rgb } from 'pdf-lib';
         //サブテーブル
         if (params?.table) {
           for (const drawItem of params.table) {
-            let y = drawItem.y; //y座標の初期値
-            //サブテーブルの行数
-            for (const recordRow of record[drawItem.fieldCode].value) {
-              let maxHeight = 0;
-              //tableプロパティの項目数
-              for (const row of drawItem.row) {
-                const height = drawTextPdf(row, recordRow.value, y); //サブテーブルの1行分を描画
-                maxHeight = maxHeight > height ? maxHeight : height; //三項演算子で、maxHeightとheightの大きい方を保持
+            if (!drawItem?.targetPage || drawItem.targetPage === 'all' || (pageCount === 0 && drawItem.targetPage === 'first') || (pageCount + 1 === totalPage && drawItem.targetPage === 'last')) {
+              let y = drawItem.y; //y座標の初期値
+              //サブテーブルの行数
+              for (const recordRow of record[drawItem.fieldCode].value) {
+                let maxHeight = 0;
+                //tableプロパティの項目数
+                for (const row of drawItem.row) {
+                  const height = drawTextPdf(row, recordRow.value, y); //サブテーブルの1行分を描画
+                  maxHeight = maxHeight > height ? maxHeight : height; //三項演算子で、maxHeightとheightの大きい方を保持
+                }
+                y -= calcOffset(drawItem, maxHeight); //次の行のy軸座標算出
               }
-              y -= calcOffset(drawItem, maxHeight); //次の行のy軸座標算出
             }
           }
         }
@@ -214,10 +260,14 @@ import { PDFDocument, rgb } from 'pdf-lib';
           const drawItem = params.pageBreakTable; //改ページ考慮ありのテーブルは一つだけ設定可
           let y = drawItem.y; //y座標の初期値
           let rowAllDraw = false; //全ての行を描画し終えたら処理終了するためのフラグ
+          const subtotal = {}; //小計用オブジェクト
+
           //サブテーブルの行(複数ページ考慮のため、前頁までに描画し終えた行を初期値とする)
           for (let rowCount = nextPageRowCount; record[drawItem.fieldCode].value.length > rowCount; rowCount++) {
             let maxHeight = 0;
+            //１行分の出力項目
             for (const row of drawItem.row) {
+              subtotalAdd(subtotal, row, record[drawItem.fieldCode].value[rowCount].value); //小計項目の集計
               const height = drawTextPdf(row, record[drawItem.fieldCode].value[rowCount].value, y); //テキスト描画
               maxHeight = maxHeight > height ? maxHeight : height; //三項演算子で、maxHeightとheightの大きい方を保持
             }
@@ -230,6 +280,19 @@ import { PDFDocument, rgb } from 'pdf-lib';
               break; //1ページ分の描画を終了、未描画の行があれば次ページ作成する。
             }
           }
+
+          if (params.pageBreakTable?.subtotal) {
+            let subtotal_y = y;
+            if (params.pageBreakTable?.y_Offset) {
+              subtotal_y = params.pageBreakTable.y - params.pageBreakTable.y_Offset * params.pageBreakTable.maxRow;
+            }
+            for (const row of drawItem.row) {
+              if (row?.subtotal) {
+                const height = drawTextPdf(row, subtotal, subtotal_y); //テキスト描画
+              }
+            }
+          }
+
           if (rowAllDraw) {
             break; //全ての行を描画し終えたらループを抜ける
           }

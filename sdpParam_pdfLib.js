@@ -21,12 +21,14 @@ var sdpParam = sdpParam || {};
         y: 750,
         size: 12,
         align: 'left',
+        targetPage: 'all',
       },
       {
         fieldCode: '担当者名',
         x: 110,
         y: 730,
         size: 12,
+        targetPage: 'first',
       },
       {
         fieldCode: '請求番号',
@@ -43,8 +45,15 @@ var sdpParam = sdpParam || {};
         postFix: '円',
         format: ['comma'],
         align: 'right', //align:rightの場合、揃える右端を指定
+        targetPage: 'last',
       },
     ],
+    pageCount: {
+      x: 300,
+      y: 10,
+      size: 12,
+      type: 'n/n',
+    },
     image: [
       {
         fieldCode: 'サイン画像',
@@ -60,6 +69,7 @@ var sdpParam = sdpParam || {};
         y: 150, //開始位置
         y_Offset: 1,
         y_OffsetFontSize: true,
+        targetPage: 'last',
         row: [
           {
             fieldCode: '処理日',
@@ -80,12 +90,14 @@ var sdpParam = sdpParam || {};
       maxRow: 17,
       y: 507, //開始位置
       y_Offset: 14.6,
+      subtotal: true,
       row: [
         {
           fieldCode: '項目',
           x: 80,
           size: 12,
           maxWidth: 210,
+          subtotal: false,
         },
         {
           fieldCode: '数量',
@@ -93,12 +105,14 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
+          subtotal: false,
         },
         {
           fieldCode: '単位',
           x: 340,
           size: 12,
           color: { red: 0, green: 0, blue: 255 },
+          subtotal: false,
         },
         {
           fieldCode: '単価',
@@ -106,6 +120,7 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
+          subtotal: false,
         },
         {
           fieldCode: '金額',
@@ -113,6 +128,7 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
+          subtotal: true,
         },
       ],
     },

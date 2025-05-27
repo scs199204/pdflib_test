@@ -1,29 +1,39 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-  base: '/pdflib_test/',
-  build: {
-    // ソースマップの設定はそのまま
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        // エントリーポイントのチャンク（通常はmain.jsなど）のファイル名
-        // [name] は元のファイル名（例: main）
-        // [hash] はコンテンツハッシュ
-        // kintone向けには、シンプルなファイル名が良いでしょう
-        //entryFileNames: `[name].js`, // 例: main.js
-        // もしくは、固定のファイル名にする場合
-        // entryFileNames: `kintone-customization.js`, // 例: kintone-customization.js
+export default defineConfig(({ command, mode }) => {
+  // 開発用ビルド設定 (modeが 'development' または 'dev-build' の場合)
+  // 'dev-build' は新しいカスタムモード(npm run build:dev)
+  if (mode === 'development' || mode === 'dev-build') {
+    return {
+      base: '/', // ルートパス
+      build: {
+        sourcemap: 'inline', // インラインソースマップ
+        // 開発用ビルドでは rollupOptions の詳細設定は通常不要
+        // (ビルド成果物のファイル名をカスタマイズしたい場合にのみ残す)
+        rollupOptions: {
+          output: {
+            entryFileNames: `[name].js`,
+            chunkFileNames: `[name]-[hash].js`,
+            assetFileNames: `[name]-[hash].[ext]`,
+          },
+        },
+      },
+    };
+  }
 
-        // その他のチャンク（importされたライブラリなど、自動で分割されるコード）のファイル名
-        //chunkFileNames: `[name]-[hash].js`,
-
-        // アセット（画像、CSSなど）のファイル名
-        //assetFileNames: `[name]-[hash][extname]`,
-        entryFileNames: `[name].js`,
-        chunkFileNames: `[name]-[hash].js`,
-        assetFileNames: `[name]-[hash].[ext]`,
+  // 本番用ビルド設定 (modeが 'production' の場合)
+  // またはデフォルトのビルド設定として扱う
+  return {
+    base: '/pdflib_test/', // GitHub Pagesなどのサブディレクトリパス
+    build: {
+      sourcemap: true, // 外部ソースマップファイル
+      rollupOptions: {
+        output: {
+          entryFileNames: `[name].js`,
+          chunkFileNames: `[name]-[hash].js`,
+          assetFileNames: `[name]-[hash].[ext]`,
+        },
       },
     },
-  },
+  };
 });

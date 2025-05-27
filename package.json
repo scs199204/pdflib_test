@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:dev": "vite build --mode dev-build",
     "preview": "vite preview",
     "deploy": "kintone-customize-uploader --base-url \"https://doi.cybozu.com\" --username \"SDP小石\" --password \"yasuo0179380\" dest/customize-manifest.json"
   },
