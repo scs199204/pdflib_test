@@ -86,13 +86,13 @@ import { PDFDocument, rgb } from 'pdf-lib';
         let green = 0;
         let blue = 0;
         if (param.color?.red) {
-          red = param.color.red > 256 ? 1 : param.color.red / 256;
+          red = param.color.red > 255 ? 1 : param.color.red / 255;
         }
         if (param.color?.green) {
-          green = param.color.green > 256 ? 1 : param.color.green / 256;
+          green = param.color.green > 255 ? 1 : param.color.green / 255;
         }
         if (param.color?.blue) {
-          blue = param.color.blue > 256 ? 1 : param.color.blue / 256;
+          blue = param.color.blue > 255 ? 1 : param.color.blue / 255;
         }
         drawTextOptions.color = rgb(red, green, blue);
       }
