@@ -10,6 +10,8 @@ lerna-debug.log*
 node_modules
 dist-ssr
 *.local
+51-modern-default.css
+SourceHanSans-Regular.otf
 
 # Editor directories and files
 .vscode/*

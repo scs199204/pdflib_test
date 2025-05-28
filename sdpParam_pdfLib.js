@@ -59,7 +59,7 @@ var sdpParam = sdpParam || {};
         fieldCode: 'サイン画像',
         x: 400,
         y: 200,
-        width: 0.2, //元の画像に対する割合
+        width: 0.13, //元の画像に対する割合
       },
     ],
     table: [
@@ -70,7 +70,7 @@ var sdpParam = sdpParam || {};
         y_Offset: 1,
         y_OffsetFontSize: true,
         targetPage: 'last',
-        row: [
+        column: [
           {
             fieldCode: '処理日',
             x: 80,
@@ -91,13 +91,13 @@ var sdpParam = sdpParam || {};
       y: 507, //開始位置
       y_Offset: 14.6,
       subtotal: true,
-      row: [
+      column: [
         {
           fieldCode: '項目',
           x: 80,
           size: 12,
           maxWidth: 210,
-          subtotal: false,
+          subtotal: 'count',
         },
         {
           fieldCode: '数量',
@@ -105,14 +105,12 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
-          subtotal: false,
         },
         {
           fieldCode: '単位',
           x: 340,
           size: 12,
           color: { red: 0, green: 0, blue: 255 },
-          subtotal: false,
         },
         {
           fieldCode: '単価',
@@ -120,7 +118,7 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
-          subtotal: false,
+          subtotal: 'count',
         },
         {
           fieldCode: '金額',
@@ -128,7 +126,7 @@ var sdpParam = sdpParam || {};
           size: 12,
           format: ['comma'],
           align: 'right',
-          subtotal: true,
+          subtotal: 'sum',
         },
       ],
     },
