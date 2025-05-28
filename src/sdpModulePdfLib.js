@@ -159,10 +159,10 @@ function subtotalAdd(subtotal, column, record) {
 //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 function isTargetPage(drawItem, pageCount, totalPage) {
   if (
-    !drawItem.hasOwnProperty('targetPage') ||
-    drawItem.targetPage === 'all' ||
-    (pageCount === 0 && drawItem.targetPage === 'first') ||
-    (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
+    //    !drawItem.hasOwnProperty('targetPage') ||
+    drawItem?.targetPage === 'all' ||
+    (pageCount === 0 && drawItem?.targetPage === 'first') ||
+    (pageCount + 1 === totalPage && drawItem?.targetPage === 'last')
   ) {
     return true;
   } else {
