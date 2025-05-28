@@ -12,8 +12,8 @@ dist-ssr
 *.local
 
 #File
-/51-modern-default.css
-/SourceHanSans-Regular.otf
+51-modern-default.css
+SourceHanSans-Regular.otf
 
 # Editor directories and files
 .vscode/*

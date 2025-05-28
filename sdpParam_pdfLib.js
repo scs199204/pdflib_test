@@ -57,8 +57,8 @@ var sdpParam = sdpParam || {};
     image: [
       {
         fieldCode: 'サイン画像',
-        x: 400,
-        y: 200,
+        x: 385,
+        y: 185,
         width: 0.13, //元の画像に対する割合
       },
     ],
