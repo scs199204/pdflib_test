@@ -149,4 +149,25 @@ function subtotalAdd(subtotal, column, record) {
   }
 }
 
-export { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd };
+//★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+/** 描画対象ページの判定
+ * @param {object} drawItem パラメタ
+ * @param {number} pageCount 現在のページ
+ * @param {number} totalPage 全体のページ数
+ * @returns {bool} true：描画対象　false：対象外
+ */
+//★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+function isTargetPage(drawItem, pageCount, totalPage) {
+  if (
+    !drawItem.hasOwnProperty('targetPage') ||
+    drawItem.targetPage === 'all' ||
+    (pageCount === 0 && drawItem.targetPage === 'first') ||
+    (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage };

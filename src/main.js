@@ -1,6 +1,6 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument } from 'pdf-lib';
-import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } from './sdpModulePdfLib.js';
+import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage } from './sdpModulePdfLib.js';
 
 (() => {
   'use strict';
@@ -69,12 +69,7 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } 
         if (params.hasOwnProperty('text')) {
           for (const drawItem of params.text) {
             //描画する対象ページの判定
-            if (
-              !drawItem.hasOwnProperty('targetPage') ||
-              drawItem.targetPage === 'all' ||
-              (pageCount === 0 && drawItem.targetPage === 'first') ||
-              (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
-            ) {
+            if (isTargetPage(drawItem, pageCount, totalPage)) {
               drawTextPdf(drawItem, record, drawItem.y); //pdfにテキスト描画
             }
           }
@@ -84,12 +79,7 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } 
         if (params.hasOwnProperty('image')) {
           for (const drawItem of params.image) {
             //描画する対象ページの判定
-            if (
-              !drawItem.hasOwnProperty('targetPage') ||
-              drawItem.targetPage === 'all' ||
-              (pageCount === 0 && drawItem.targetPage === 'first') ||
-              (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
-            ) {
+            if (isTargetPage(drawItem, pageCount, totalPage)) {
               try {
                 const signatureImageFileKey = record[drawItem.fieldCode].value[0].fileKey; //画像のfileKey
                 if (signatureImageFileKey) {
@@ -122,12 +112,7 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } 
         if (params.hasOwnProperty('table')) {
           for (const drawItem of params.table) {
             //描画する対象ページの判定
-            if (
-              !drawItem.hasOwnProperty('targetPage') ||
-              drawItem.targetPage === 'all' ||
-              (pageCount === 0 && drawItem.targetPage === 'first') ||
-              (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
-            ) {
+            if (isTargetPage(drawItem, pageCount, totalPage)) {
               let y = drawItem.y; //y座標の初期値
               //サブテーブルの行数
               for (let rowCount = 0; record[drawItem.fieldCode].value.length > rowCount; rowCount++) {
