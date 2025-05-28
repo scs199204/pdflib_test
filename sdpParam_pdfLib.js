@@ -59,7 +59,7 @@ var sdpParam = sdpParam || {};
         fieldCode: 'サイン画像',
         x: 385,
         y: 185,
-        width: 0.13, //元の画像に対する割合
+        width: 110,
       },
     ],
     table: [

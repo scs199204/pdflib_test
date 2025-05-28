@@ -95,8 +95,20 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } 
                 if (signatureImageFileKey) {
                   const signatureImageBytes = await getFileData(signatureImageFileKey); // 画像を取得
                   const signatureImage = await pdfDoc.embedPng(signatureImageBytes); //PNGファイルの埋め込み
-                  const height = drawItem.hasOwnProperty('height') ? drawItem.height : drawItem.width; //heightがない場合、画像の幅を高さにする(正方形の画像)
-                  page.drawImage(signatureImage, { x: drawItem.x, y: drawItem.y, width: signatureImage.width * drawItem.width, height: signatureImage.height * height });
+                  let widthRatio = 0;
+                  let heightRatio = 0;
+                  //幅の割合指定
+                  if (drawItem.hasOwnProperty('widthRatio')) {
+                    widthRatio = drawItem.widthRatio;
+                    heightRatio = drawItem.hasOwnProperty('heightRatio') ? drawItem.heightRatio : drawItem.widthRatio; //heightがない場合、幅と同じ割合
+                    //幅指定
+                  } else if (drawItem.hasOwnProperty('width')) {
+                    widthRatio = drawItem.width / signatureImage.width; //指定した幅になるように割合調節
+                    heightRatio = drawItem.hasOwnProperty('height') ? drawItem.height / signatureImage.height : widthRatio;
+                  } else {
+                    throw new Error(fieldCode + 'の幅が設定されていません');
+                  }
+                  page.drawImage(signatureImage, { x: drawItem.x, y: drawItem.y, width: signatureImage.width * widthRatio, height: signatureImage.height * heightRatio });
                 }
               } catch (error) {
                 console.error('画像の埋め込みエラー:', error);
@@ -169,7 +181,10 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd } 
               //小計行の描画項目(プロパティが存在しない場合はfalse)
               if (column?.subtotal) {
                 const subtotalColumn = structuredClone(column); //ディープコピー
-                //subtotalColumn.align = 'right'; //小計行は、全て右寄せ→明細行の位置と合わせることができないので設定しないようにした
+                if (subtotalColumn.hasOwnProperty('maxWidth')) {
+                  subtotalColumn.x += subtotalColumn.maxWidth; //maxWidthの指定があれば、最大幅の位置で右寄せする
+                  subtotalColumn.align = 'right'; //小計行は、全て右寄せ→明細行の位置と合わせることができないので設定しないようにした
+                }
                 //formatに「comma」追加→カンマ編集時にstringへ変換してwidthOfTextAtSizeでエラーにならないようにする
                 if (subtotalColumn.hasOwnProperty('format')) {
                   if (!subtotalColumn.format.includes('comma')) {
