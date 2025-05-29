@@ -159,10 +159,10 @@ function subtotalAdd(subtotal, column, record) {
 //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 function isTargetPage(drawItem, pageCount, totalPage) {
   if (
-    //    !drawItem.hasOwnProperty('targetPage') ||
-    drawItem?.targetPage === 'all' ||
-    (pageCount === 0 && drawItem?.targetPage === 'first') ||
-    (pageCount + 1 === totalPage && drawItem?.targetPage === 'last')
+    !drawItem.hasOwnProperty('targetPage') ||
+    drawItem.targetPage === 'all' ||
+    (pageCount === 0 && drawItem.targetPage === 'first') ||
+    (pageCount + 1 === totalPage && drawItem.targetPage === 'last')
   ) {
     return true;
   } else {
@@ -170,4 +170,17 @@ function isTargetPage(drawItem, pageCount, totalPage) {
   }
 }
 
-export { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage };
+async function getFontDataFromGitHubPages(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch font from ${url}: ${response.statusText}`);
+    }
+    return await response.arrayBuffer(); // ArrayBufferとして取得
+  } catch (error) {
+    console.error('Error fetching font from GitHub Pages:', error);
+    throw error; // エラーを再スローして呼び出し元で処理できるようにする
+  }
+}
+
+export { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage, getFontDataFromGitHubPages };

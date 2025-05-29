@@ -14,14 +14,21 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
     const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
 
     const templatePdfFileKey = await getPdfFileKey(params.app.pdf.id.value, params.app.pdf.recordId.value, params.app.pdf.attachment.value); //ひな形pdfのfileKey取得
-    const fontFileKey = await getPdfFileKey(params.app.font.id.value, params.app.font.recordId.value, params.app.font.attachment.value); //フォントファイルのfileKey取得
+    //const fontFileKey = await getPdfFileKey(params.app.font.id.value, params.app.font.recordId.value, params.app.font.attachment.value); //フォントファイルのfileKey取得
+    const fontUrl = params.app.font.githubPagesUrl; //
 
     if (!templatePdfFileKey) {
       alert('請求書雛形PDFが設定されていません。');
       return;
     }
+    /*
     if (!fontFileKey) {
       alert('フォントが設定されていません。');
+      return;
+    }
+    */
+    if (!fontUrl) {
+      alert('フォントのGitHub Pages URLが設定されていません。');
       return;
     }
 
@@ -29,8 +36,10 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
       const pdfDoc = await PDFDocument.load(await getFileData(templatePdfFileKey)); //PDFDocumentを読込む(ArrayBuffer)
       pdfDoc.registerFontkit(fontkit); //PDFドキュメント内で利用できるようにするためのフォントエンジン
 
-      const fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
-      const customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む
+      //const fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
+      const fontBytes = await getFontDataFromGitHubPages(fontUrl); // フォントファイルを取得
+      const customFont = await pdfDoc.embedFont(fontBytes, { subset: true }); //サブセット化すると、フォントによっては一部の文字が表示されなくなる可能性ある
+      //const customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む(ファイルサイズが大きくなる)
 
       //全体のページ数
       let totalPage = 1;
