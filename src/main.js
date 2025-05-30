@@ -1,7 +1,6 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument } from 'pdf-lib';
 import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage, getFontDataFromGitHubPages, isInCoordinateRange } from './sdpModulePdfLib.js';
-import params from "https://scs199204.github.io/pdflib_test/sdpParam_pdfLib.json" with { type: "json" };
 
 (() => {
   'use strict';
@@ -12,7 +11,7 @@ import params from "https://scs199204.github.io/pdflib_test/sdpParam_pdfLib.json
    */
   //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
   async function pdfCreate(record) {
-    //const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
+    const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
 
     const templatePdfFileKey = await getPdfFileKey(params.app.pdf.id.value, params.app.pdf.recordId.value, params.app.pdf.attachment.value); //ひな形pdfのfileKey取得
     if (!templatePdfFileKey) {
