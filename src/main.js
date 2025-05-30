@@ -1,6 +1,6 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument } from 'pdf-lib';
-import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage, getFontDataFromGitHubPages } from './sdpModulePdfLib.js';
+import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage, getFontDataFromGitHubPages, isInCoordinateRange } from './sdpModulePdfLib.js';
 
 (() => {
   'use strict';
@@ -14,32 +14,38 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
     const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
 
     const templatePdfFileKey = await getPdfFileKey(params.app.pdf.id.value, params.app.pdf.recordId.value, params.app.pdf.attachment.value); //ひな形pdfのfileKey取得
-    //const fontFileKey = await getPdfFileKey(params.app.font.id.value, params.app.font.recordId.value, params.app.font.attachment.value); //フォントファイルのfileKey取得
-    const fontUrl = params.app.font.githubPagesUrl; //
-
     if (!templatePdfFileKey) {
       alert('請求書雛形PDFが設定されていません。');
       return;
     }
-    /*
-    if (!fontFileKey) {
-      alert('フォントが設定されていません。');
-      return;
-    }
-    */
-    if (!fontUrl) {
-      alert('フォントのGitHub Pages URLが設定されていません。');
-      return;
+
+    if (params.app.font.hasOwnProperty('githubPagesUrl')) {
     }
 
     try {
       const pdfDoc = await PDFDocument.load(await getFileData(templatePdfFileKey)); //PDFDocumentを読込む(ArrayBuffer)
       pdfDoc.registerFontkit(fontkit); //PDFドキュメント内で利用できるようにするためのフォントエンジン
 
-      //const fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
-      const fontBytes = await getFontDataFromGitHubPages(fontUrl); // フォントファイルを取得
-      const customFont = await pdfDoc.embedFont(fontBytes, { subset: true }); //サブセット化すると、フォントによっては一部の文字が表示されなくなる可能性ある
-      //const customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む(ファイルサイズが大きくなる)
+      //フォントファイルの取得
+      let fontBytes;
+      let customFont;
+      try {
+        //githubPagesUrlがある時は、対象のurlからフォントファイル取得
+        if (params.app.font.hasOwnProperty('githubPagesUrl')) {
+          const fontUrl = params.app.font.githubPagesUrl; //GitHub Pagesのurl
+          fontBytes = await getFontDataFromGitHubPages(fontUrl); // フォントファイルをGitHub Pagesから取得
+        } else {
+          const fontFileKey = await getPdfFileKey(params.app.font.id.value, params.app.font.recordId.value, params.app.font.attachment.value); //フォントファイルのfileKey取得
+          if (!fontFileKey) {
+            throw new Error('フォントが設定されていません。');
+          }
+          fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
+        }
+        customFont = await pdfDoc.embedFont(fontBytes, { subset: true }); //サブセット化すると、フォントによっては一部の文字が表示されなくなる可能性ある
+        //customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む(ファイルサイズが大きくなる)
+      } catch (error) {
+        throw new Error('フォントファイル取得エラー\n' + error.message);
+      }
 
       //全体のページ数
       let totalPage = 1;
@@ -107,11 +113,20 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
                   } else {
                     throw new Error(fieldCode + 'の幅が設定されていません');
                   }
-                  page.drawImage(signatureImage, { x: drawItem.x, y: drawItem.y, width: signatureImage.width * widthRatio, height: signatureImage.height * heightRatio });
+                  //描画位置がページの範囲内かどうかのチェック
+                  const x = drawItem.x;
+                  const y = drawItem.y;
+                  const width = signatureImage.width * widthRatio;
+                  const height = signatureImage.height * heightRatio;
+                  const { width: pageWidth, height: pageHeight } = page.getSize();
+                  if (isInCoordinateRange(x, y, width, height, pageWidth, pageHeight)) {
+                    page.drawImage(signatureImage, { x: x, y: y, width: width, height: height });
+                  } else {
+                    throw new Error(drawItem.fieldCode + 'がページの範囲外です。');
+                  }
                 }
               } catch (error) {
-                console.error('画像の埋め込みエラー:', error);
-                alert('画像の処理中にエラーが発生しました。');
+                throw new Error('画像の埋め込みエラー:\n' + error.message);
               }
             }
           }
@@ -207,8 +222,8 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('PDF出力エラー:', error);
-      alert('PDF出力に失敗しました。');
+      console.error('PDF出力エラー:', error.message);
+      alert('PDF出力に失敗しました。\n' + error.message);
     }
   }
   //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
@@ -221,7 +236,14 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
     printButton.className = 'kintoneplugin-button-dialog-ok';
 
     printButton.addEventListener('click', async () => {
-      pdfCreate(record);
+      printButton.disabled = true; // クリックされたらボタンを無効化
+      printButton.className = 'kintoneplugin-button-disabled';
+      try {
+        await pdfCreate(record);
+      } finally {
+        printButton.disabled = false; // 処理が完了したらボタンを有効化
+        printButton.className = 'kintoneplugin-button-dialog-ok';
+      }
     });
 
     const spaceElement = kintone.app.record.getSpaceElement('printButtonSpace');
