@@ -14,7 +14,7 @@ var sdpParam = sdpParam || {};
         recordId: { value: 8 }, //レコード
         attachment: { value: '添付ファイル' }, //フィールド名
         */
-        githubPagesUrl: 'https://scs199204.github.io/pdflib_test/public/fonts/GenShinGothic-P-Regular.ttf',
+        url: { value: 'https://scs199204.github.io/pdflib_test/public/fonts/GenShinGothic-P-Regular.ttf' },
       },
     },
     text: [

@@ -1,6 +1,7 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument } from 'pdf-lib';
 import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, isTargetPage, getFontDataFromGitHubPages, isInCoordinateRange } from './sdpModulePdfLib.js';
+import params from "https://scs199204.github.io/pdflib_test/sdpParam_pdfLib.json" with { type: "json" };
 
 (() => {
   'use strict';
@@ -11,7 +12,7 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
    */
   //★★★★★★★★★★★★★★★★★★★★★★★★★★★★
   async function pdfCreate(record) {
-    const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
+    //const params = sdpParam.pdfLib; //パラメタ(sdpParam_pdfLib.js)
 
     const templatePdfFileKey = await getPdfFileKey(params.app.pdf.id.value, params.app.pdf.recordId.value, params.app.pdf.attachment.value); //ひな形pdfのfileKey取得
     if (!templatePdfFileKey) {
@@ -30,9 +31,9 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
       let fontBytes;
       let customFont;
       try {
-        //githubPagesUrlがある時は、対象のurlからフォントファイル取得
-        if (params.app.font.hasOwnProperty('githubPagesUrl')) {
-          const fontUrl = params.app.font.githubPagesUrl; //GitHub Pagesのurl
+        //githubPagesUrlがある時は、対象のurlからフォントファイル取得、ない場合はkintoneアプリのレコードから取得
+        if (params.app.font.hasOwnProperty('url')) {
+          const fontUrl = params.app.font.url.value; //GitHub Pagesのurl
           fontBytes = await getFontDataFromGitHubPages(fontUrl); // フォントファイルをGitHub Pagesから取得
         } else {
           const fontFileKey = await getPdfFileKey(params.app.font.id.value, params.app.font.recordId.value, params.app.font.attachment.value); //フォントファイルのfileKey取得
@@ -41,7 +42,7 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
           }
           fontBytes = await getFileData(fontFileKey); // フォントファイルを取得
         }
-        customFont = await pdfDoc.embedFont(fontBytes, { subset: true }); //サブセット化すると、フォントによっては一部の文字が表示されなくなる可能性ある
+        customFont = await pdfDoc.embedFont(fontBytes, { subset: true }); //サブセット化すると、フォントによっては一部の文字が表示されなくなる可能性あるのでフォント変更時は確認すること
         //customFont = await pdfDoc.embedFont(fontBytes); //ドキュメントにフォントを埋め込む(ファイルサイズが大きくなる)
       } catch (error) {
         throw new Error('フォントファイル取得エラー\n' + error.message);
@@ -218,7 +219,8 @@ import { getFileData, getPdfFileKey, drawTextPdfFunc, calcOffset, subtotalAdd, i
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `請求書_${record.請求番号.value}.pdf`;
+      const 会社名スペースカット = record.会社名.value.replace(/\s+/g, '');
+      a.download = `請求書_${会社名スペースカット}(${record.請求番号.value}).pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
